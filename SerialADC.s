@@ -129,12 +129,13 @@ USART_RXC:
 WAITA: 	lds temp, ADCSRA		;Read Status register
 		sbrs temp,ADIF 			;Isolate conversion complete bit
 		rjmp WAITA 				;If bit is clear(masked byte not zero) then converion is not complete
-		lds temp_hi,ADCH		;When conversion is comlete copy ADC high byte and low byte
-		lds temp_lo,ADCL
-
+	
 		lds temp, ADCSRA
 		sbr temp, ADIF			;Clear ADC Interrupt flag
 		sts ADCSRA, temp
+	
+		lds temp_hi,ADCH		;When conversion is comlete copy ADC high byte and low byte
+		lds temp_lo,ADCL
 
 		sts UDR0,temp_hi		;Send the conversion result high byte (only righmost 2 bits are relevant)
 WAITH:	lds temp,UCSR0A 		;Check if UART transmission is complete
