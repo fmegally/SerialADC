@@ -126,9 +126,9 @@ USART_RXC:
 		out PORTB, temp			;Show RX value on Port B for debugging
 		sbr temp, (1<<ADSC)		;Set start conversion bit
 		sts ADCSRA, temp 		;Store new setting
-WAITA: 	lds temp, ADCSRA		;Read Status register
+CONV_W:	lds temp, ADCSRA		;Read Status register
 		sbrs temp,ADIF 			;Isolate conversion complete bit
-		rjmp WAITA 				;If bit is clear(masked byte not zero) then converion is not complete
+		rjmp CONV_W				;If bit is clear(masked byte not zero) then converion is not complete
 	
 		lds temp, ADCSRA
 		sbr temp, (1<<ADIF)		;Clear ADC Interrupt flag
@@ -136,22 +136,22 @@ WAITA: 	lds temp, ADCSRA		;Read Status register
 		sts ADCSRA, temp		;since it is an extended conversion which does not clear it automatically
 		
 	
-		lds temp_hi,ADCH		;When conversion is comlete copy ADC high byte and low byte
 		lds temp_lo,ADCL
+		lds temp_hi,ADCH		;When conversion is comlete copy ADC high byte and low byte
 
 		sts UDR0,temp_hi		;Send the conversion result high byte (only righmost 2 bits are relevant)
-WAITH:	lds temp,UCSR0A 		;Check if UART transmission is complete
+TXH_W:	lds temp,UCSR0A 		;Check if UART transmission is complete
 		sbrs temp,TXC0			;When TXC flag is raised (transm. complete) then move on
-		rjmp WAITH
+		rjmp TXH_W
 
 		lds temp,UCSR0A 		;Read UART Status register A
 		sbr temp,(1<<TXC0) 		;Modify (write logical 1) to TX Complete bit. Write to to TXC to clear flag 
 		sts UCSR0A,temp 		;Store(clear TX)
 
 		sts UDR0,temp_lo 		;Send the conversion result low byte
-WAITL:	lds temp,UCSR0A 		;Check if UART transmission is complete
+TXL_W:	lds temp,UCSR0A 		;Check if UART transmission is complete
 		sbrs temp,TXC0			;When TXC flag is raised then move one
-		rjmp WAITL
+		rjmp TXL_W
 
 		lds temp,UCSR0A 		;Read UART Status register A
 		sbr temp,(1<<TXC0) 		;Modify (write logical 1) to TX Complete bit. Write to to TXC to clear flag
