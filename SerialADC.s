@@ -57,7 +57,7 @@ RESET:	cli					;Disable global interrupts
 		;Initialize the ADC peripheral
 		clr temp
 		sts ADCSRB, temp
-		ldi temp, (1<<ADEN)|(1<<ADPS2)|(ADPS1)|(ADPS0)
+		ldi temp, (1<<ADEN)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0)
 		sts ADCSRA, temp
 		;Enable port B as output for debugging
 		ldi temp,0xFF
@@ -122,8 +122,8 @@ USART_RXC:
 		lds temp, UDR0 			;Read requested channel from received byte
 		andi temp,0x07 			;Mask to allow only ADC0 to ADC7 as valid options
 		sts ADMUX, temp 		;Update MUX setting with the new channel
-		out PORTB, temp			;Show RX value on Port B for debugging
 		lds temp, ADCSRA 		;Read ADC status register
+		out PORTB, temp			;Show RX value on Port B for debugging
 		sbr temp, (1<<ADSC)		;Set start conversion bit
 		sts ADCSRA, temp 		;Store new setting
 WAITA: 	lds temp, ADCSRA		;Read Status register
@@ -131,8 +131,10 @@ WAITA: 	lds temp, ADCSRA		;Read Status register
 		rjmp WAITA 				;If bit is clear(masked byte not zero) then converion is not complete
 	
 		lds temp, ADCSRA
-		sbr temp, ADIF			;Clear ADC Interrupt flag
-		sts ADCSRA, temp
+		sbr temp, (1<<ADIF)		;Clear ADC Interrupt flag
+		cbr temp, (1<<ADSC)		;Clear ADC Start Conversion (technically needed only after the first conversion only)
+		sts ADCSRA, temp		;since it is an extended conversion which does not clear it automatically
+		
 	
 		lds temp_hi,ADCH		;When conversion is comlete copy ADC high byte and low byte
 		lds temp_lo,ADCL
