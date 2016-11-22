@@ -57,7 +57,7 @@ RESET:	cli					;Disable global interrupts
 		;Initialize the ADC peripheral
 		clr temp
 		sts ADCSRB, temp
-		ldi temp, (1<<ADEN)
+		ldi temp, (1<<ADEN)|(1<<ADPS2)|(ADPS1)|(ADPS0)
 		sts ADCSRA, temp
 		;Enable port B as output for debugging
 		ldi temp,0xFF
